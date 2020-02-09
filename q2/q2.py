@@ -131,8 +131,9 @@ def sgd_main(x_data, y_data):
             # p-th batch
 
             update_line(hl, (theta[0][0], theta[0][1], theta[0][2]))
+            
             plt.show(block=False)
-        	plt.pause(0.2)
+            plt.pause(0.2)
             
             prevcost = cost(x_data, y_data, theta, ll, ul)
             # clear_output(wait=True)
