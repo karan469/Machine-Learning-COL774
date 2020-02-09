@@ -12,7 +12,7 @@ from mpl_toolkits.mplot3d import Axes3D
 lr = 0.01
 batch_size = 1
 SAMPLING_NUM = 1000000
-COST_THRESHOLD = 6.1e-07
+COST_THRESHOLD = 6.1e-05
 
 
 # In[2]:
@@ -102,6 +102,7 @@ def cost(x_data, y_data, params, ll, ul):
 
 
 from os import system
+import os
 from IPython.display import clear_output
 def sgd_main(x_data, y_data):
     m = int(y_data.shape[0])
@@ -115,25 +116,27 @@ def sgd_main(x_data, y_data):
     map = plt.figure()
     map_ax = Axes3D(map)
     map_ax.autoscale(enable=True, axis='both', tight=True)
-    # # # Setting the axes properties
+    # # Setting the axes properties
     map_ax.set_xlim3d([0.0, 5.0])
     map_ax.set_ylim3d([0.0, 5.0])
     map_ax.set_zlim3d([0.0, 5.0])
     hl, = map_ax.plot3D([theta[0][0]], [theta[0][1]], [theta[0][2]])
 
-    while(abs(prevcost - cost(x_data, y_data, theta, 0, m))):
+    while(abs(prevcost - cost(x_data, y_data, theta, 0, m))>COST_THRESHOLD):
         p = 0
         ll=0
         ul=r
         
         while(p <= m):    
             # p-th batch
+
             update_line(hl, (theta[0][0], theta[0][1], theta[0][2]))
             plt.show(block=False)
-            plt.pause(0.2)
+        	plt.pause(0.2)
             
             prevcost = cost(x_data, y_data, theta, ll, ul)
-            clear_output(wait=True)
+            # clear_output(wait=True)
+            os.system('clear')
             print('=================EPOCH %s=================' % epoch)
             for i in range(p, r+p):
                 gradient = np.zeros(3)
@@ -145,10 +148,12 @@ def sgd_main(x_data, y_data):
             p += r
             if(p == m):
                 break
-            print('COST DiFF: %s \n' % (prevcost-cost(x_data, y_data, theta, ll, ul)))
+            now_cost = cost(x_data, y_data, theta, ll, ul)
+            print('COST NOW: %s \n' % now_cost)
+            print('COST DiFF: %s \n' % (prevcost-now_cost))
             # if(prevcost - cost(x_data, y_data, theta, ll, ul)<COST_THRESHOLD and cost(x_data, y_data, theta, ll, ul)<COST_THRESHOLD*10):
             #     return theta
-            prevcost = cost(x_data, y_data, theta, ll, ul)
+            # prevcost = cost(x_data, y_data, theta, ll, ul)
             ll += r
             ul += r
         epoch+=1
