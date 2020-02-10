@@ -10,8 +10,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-f1 = open('./data/q1/linearX.csv')
-f2 = open('./data/q1/linearY.csv')
+threshold = 1.6855447430592224e-8
+f1 = open('./q1/linearX.csv')
+f2 = open('./q1/linearY.csv')
 
 Data = np.zeros(shape=(100,2))
 
@@ -25,6 +26,16 @@ for y in f2:
 	Data[cnt][1] = float(y.split('\n')[0])
 	cnt += 1
 
+# Normalizing
+temp = Data[:,0].copy()
+temp -= np.mean(Data[:, 0])
+temp /= np.std(Data[:, 0])
+Data[:, 0] = temp
+
+temp = Data[:,1].copy()
+temp -= np.mean(Data[:, 1])
+temp /= np.std(Data[:, 1])
+Data[:, 1] = temp
 
 # plt.title("Data Set Q1") 
 # plt.xlabel("Acidity of wine") 
@@ -39,7 +50,7 @@ def update_line(hl, new_data):
 	plt.draw()
 
 theta = np.ones(2)
-learning_rate = 0.0004
+learning_rate = 0.05
 
 def hypothesis(x, theta):
 	return theta[0] + x*theta[1]
@@ -63,10 +74,15 @@ def error(Data, theta, num):
 
 def abline(slope, intercept):
     """Plot a line from slope and intercept"""
+    plt.title("Data Set Q1") 
+    plt.xlabel("Acidity of wine") 
+    plt.ylabel("Density of wine") 
+    plt.plot(Data[:,0], Data[:,1], "ob")
     axes = plt.gca()
     x_vals = np.array(axes.get_xlim())
     y_vals = intercept + slope * x_vals
     plt.plot(x_vals, y_vals, '--')
+    plt.show()
 
 map = plt.figure()
 map_ax = Axes3D(map)
@@ -75,21 +91,24 @@ map_ax.autoscale(enable=True, axis='both', tight=True)
 # # # Setting the axes properties
 map_ax.set_xlim3d([0.0, 1.0])
 map_ax.set_ylim3d([0.0, 1.0])
-map_ax.set_zlim3d([0.0, 13.0])
+map_ax.set_zlim3d([0.0, 0.8])
 
 hl, = map_ax.plot3D([theta[0]], [theta[1]], [cost(Data, theta)])
 
-# theta[0] = 9.90349706e-01
-for i in range(1000):
+diff = 1
+i=0
+while(diff>threshold):
 	
 	# to make it faster - CAUTION: making it more than 0.05 is actually making the cost diverging
 	# if i<10:
 	# 	learning_rate = 0.05
-
+	temp = cost(Data, theta)
 	theta[0] = theta[0] + learning_rate*error(Data, theta, 0)
 	theta[1] = theta[1] + learning_rate*error(Data, theta, 1)
-	tmp = cost(Data, theta)
-	update_line(hl, (theta[0], theta[1], tmp))
+	diff = temp - cost(Data, theta)
+	update_line(hl, (theta[0], theta[1], temp))
 	plt.show(block=False)
 	plt.pause(0.2)
-	print('Cost: ', tmp)
+	# print('Cost: ', temp)
+	i += 1
+print(theta)

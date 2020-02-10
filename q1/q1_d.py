@@ -10,11 +10,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-f1 = open('./data/q1/linearX.csv')
-f2 = open('./data/q1/linearY.csv')
-
-f1 = open('./data/q1/linearX.csv')
-f2 = open('./data/q1/linearY.csv')
+threshold = 1.6855447430592224e-8
+f1 = open('./q1/linearX.csv')
+f2 = open('./q1/linearY.csv')
 
 Data = np.zeros(shape=(100,2))
 
@@ -28,6 +26,16 @@ for y in f2:
 	Data[cnt][1] = float(y.split('\n')[0])
 	cnt += 1
 
+# Normalizing
+temp = Data[:,0].copy()
+temp -= np.mean(Data[:, 0])
+temp /= np.std(Data[:, 0])
+Data[:, 0] = temp
+
+temp = Data[:,1].copy()
+temp -= np.mean(Data[:, 1])
+temp /= np.std(Data[:, 1])
+Data[:, 1] = temp
 
 # plt.title("Data Set Q1") 
 # plt.xlabel("Acidity of wine") 
@@ -42,7 +50,7 @@ def update_line(hl, new_data):
 	plt.draw()
 
 theta = np.ones(2)
-learning_rate = 0.0004
+learning_rate = 0.05
 
 def hypothesis(x, theta):
 	return theta[0] + x*theta[1]
@@ -66,45 +74,66 @@ def error(Data, theta, num):
 
 def abline(slope, intercept):
     """Plot a line from slope and intercept"""
+    plt.title("Data Set Q1") 
+    plt.xlabel("Acidity of wine") 
+    plt.ylabel("Density of wine") 
+    plt.plot(Data[:,0], Data[:,1], "ob")
     axes = plt.gca()
     x_vals = np.array(axes.get_xlim())
     y_vals = intercept + slope * x_vals
     plt.plot(x_vals, y_vals, '--')
+    plt.show()
 
 
-
-def f(x, y):
-    return x+4*y
-
-x = np.linspace(-6, 6, 30)
-y = np.linspace(-6, 6, 30)
-
-
-X, Y = np.meshgrid(x, y)
-Z = f(X, Y)
-
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-ax.contour3D(X, Y, Z, 50, cmap='binary')
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_zlabel('z');
-
-ax.view_init(60, 35)
-# plt.show()
-
-hl, = ax.plot3D([theta[0]], [theta[1]], [cost(Data, theta)])
-
-for i in range(1000):
+theta_hist_0 = []
+theta_hist_1 = []
+cost_hist = []
+diff = 1
+i=0
+while(diff>threshold):
 	
 	# to make it faster - CAUTION: making it more than 0.05 is actually making the cost diverging
-	if i<10:
-		learning_rate = 0.05
+	# if i<10:
+	# 	learning_rate = 0.05
+	theta_hist_0.append(theta[0])
+	theta_hist_1.append(theta[1])
+
+	temp = cost(Data, theta)
+	cost_hist.append(temp)
 
 	theta[0] = theta[0] + learning_rate*error(Data, theta, 0)
 	theta[1] = theta[1] + learning_rate*error(Data, theta, 1)
-	tmp = cost(Data, theta)
-	update_line(hl, (theta[0], theta[1], tmp))
-	plt.show(block=False)
-	plt.pause(0.2)
-	print('Cost: ', tmp)
+	diff = temp - cost(Data, theta)
+	# print('Cost: ', temp)
+	i += 1
+
+a0 = np.array(theta_hist_0)
+a1 = np.array(theta_hist_1)
+b0 = np.array(cost_hist)
+opti0 = theta[0]
+opti1 = theta[1]
+
+# print(b0)
+
+ms = np.linspace(-0.2, 2.0, 100)
+bs = np.linspace(-1, 1, 100)
+M, B = np.meshgrid(ms, bs)
+zz = []
+# print(a0[0,:].shape)
+for i in range(100):
+	fd = np.zeros(2)
+	fd[0] = theta_hist_0[i]
+	fd[1] = theta_hist_1[i]
+	zz.append(cost(Data, fd))
+zs = np.array(zz)
+Z = zs.reshape(M.shape)
+
+fig = plt.figure()
+CS = plt.contour(M, B, Z, 25)
+plt.clabel(CS, inline=1, fontsize=10)
+plt.plot([opti0], [opti1], color='r', marker='x', label='Optimal Value')
+plt.legend()
+plt.xlabel('Theta0 -->')
+plt.ylabel('Theta1 -->')
+plt.title('Contour plot')
+plt.show(block=False)
