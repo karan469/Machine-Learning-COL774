@@ -7,9 +7,12 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from os import system
+import os
+from IPython.display import clear_output
 
 # Params
-lr = 0.01
+lr = 0.001
 batch_size = 1
 SAMPLING_NUM = 1000000
 COST_THRESHOLD = 6.1e-05
@@ -101,9 +104,7 @@ def cost(x_data, y_data, params, ll, ul):
 # In[23]:
 
 
-from os import system
-import os
-from IPython.display import clear_output
+
 def sgd_main(x_data, y_data):
     m = int(y_data.shape[0])
     r = batch_size
@@ -129,14 +130,12 @@ def sgd_main(x_data, y_data):
         
         while(p <= m):    
             # p-th batch
-
             update_line(hl, (theta[0][0], theta[0][1], theta[0][2]))
             
             plt.show(block=False)
             plt.pause(0.2)
             
             prevcost = cost(x_data, y_data, theta, ll, ul)
-            # clear_output(wait=True)
             os.system('clear')
             print('=================EPOCH %s=================' % epoch)
             for i in range(p, r+p):
@@ -152,9 +151,6 @@ def sgd_main(x_data, y_data):
             now_cost = cost(x_data, y_data, theta, ll, ul)
             print('COST NOW: %s \n' % now_cost)
             print('COST DiFF: %s \n' % (prevcost-now_cost))
-            # if(prevcost - cost(x_data, y_data, theta, ll, ul)<COST_THRESHOLD and cost(x_data, y_data, theta, ll, ul)<COST_THRESHOLD*10):
-            #     return theta
-            # prevcost = cost(x_data, y_data, theta, ll, ul)
             ll += r
             ul += r
         epoch+=1
@@ -166,20 +162,6 @@ def sgd_main(x_data, y_data):
 
 
 learned_params = sgd_main(x_data, y_data)
-
-
-# In[7]:
-
-
-# Unit Test
-# learned_params = np.zeros(shape = (4, 3))
-# for i in range(4):
-#     batch_size = (100**i)
-#     learned_params[i] = sgd_main(x_data, y_data)
-#     print('Learned Params with batch_size = %s : theta = %s \n' % (batch_size,str(learned_params[i])))
-#     print('COST: %s \n' % cost(x_data, y_data, learned_params[i], 0, int(y_data.shape[0])))
-#     break
-
 
 # # Report
 # 1. batch_size = 10 | threshold = 
@@ -228,4 +210,5 @@ print(cost(testing_x, testing_y, learned_params,0, TESTING_SIZE))
 
 
 
-
+def main():
+    
