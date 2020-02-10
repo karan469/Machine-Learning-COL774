@@ -1,41 +1,69 @@
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import csv
+#!/usr/bin/env python
+# coding: utf-8
 
+# In[1]:
+
+
+import numpy as np
+from matplotlib import pyplot as plt
+import math
+m = 100
 global flag
 flag = 0
 
-def get_phi(label, m):
-    return len(label)*1.0/m
 
-def get_mu(label, X, m):
-    sum = 0
-    for i in label:
-        sum += X[i]
-    return sum*1.0/len(label)
+# In[135]:
 
-def get_indiv_sigma(label, X, mu, m):
-    mu = mu.reshape(len(mu),1)
-    sum = 0
-    for i in label:
-        x_i = X[i].reshape(len(X[i]),1)
-        some_i = x_i - mu
-        sum += np.dot(some_i, some_i.T)
-    return sum*1.0/len(label)
 
-def same_sigma(X,y,mu0,mu1,m):
-    mu0 = mu0.reshape(len(mu0), 1)
-    mu1 = mu1.reshape(len(mu1), 1)
-    sum = 0
-    for i in range(m):
-        x_i = X[i].reshape(len(X[i]), 1)
-        if(y[i] == 0):
-            some_i = x_i - mu0
-        else:
-            some_i = x_i - mu1
-        sum += np.dot(some_i, some_i.T)
-    return sum*1.0/m
+X = np.zeros(shape = (m,2))
+Y = np.zeros(shape = (m,1))
+f1 = open('./q4/q4x.dat','r')
+f2 = open('./q4/q4y.dat','r')
+cnt = 0
+for x in f1:
+    lt = x.split(' ')
+#     X[cnt][0] = 1
+    X[cnt][0] = lt[0]
+    X[cnt][1] = lt[2]
+    cnt += 1
+cnt=0
+for x in f2:
+    if(x.split('\n')[0]=='Alaska'):
+        Y[cnt][0] = 0
+    else:
+        Y[cnt][0] = 1
+    cnt+=1
+
+# Normalisation
+temp = X[:,0].copy()
+temp -= np.mean(X[:, 0])
+temp /= np.std(X[:, 0])
+X[:, 0] = temp
+temp = X[:, 1].copy()
+temp -= np.mean(X[:, 1])
+temp /= np.std(X[:, 1])
+X[:, 1] = temp
+
+
+# In[136]:
+
+
+def oneCheck(var, ans):
+    if var == ans:
+        return 1
+    return 0
+
+
+# In[137]:
+
+
+phi = 0
+for i in range(m):
+    phi += oneCheck(Y[i][0], 1)/m
+
+
+# In[138]:
+
 
 def get_y(x, c, a, b):
     return (c - a*x*1.0)/b
@@ -77,156 +105,164 @@ def get_quadratic(x, phi, mu0, mu1, sigma0, sigma1):
     return ( (0.5*(-v + sqt))/u , (0.5*(-v - sqt))/u )
 
 
-def main(X, y, m):
-    print('==============')
-    print(X)
-    label_0 = np.where(y == 0)[0]
-    label_1 = np.where(y == 1)[0]
+# In[139]:
 
-    #plotting the training data with the linear separator
-    print('\n\nPlotting the data...\n')
-    plt.figure()
-    x1 = np.array([X[x, :] for x in label_0])
-    x2 = np.array([X[x, :] for x in label_1])
-    plt.plot(x1[:, 0], x1[:, 1], 'ro', marker='o', label='Alaska')
-    plt.plot(x2[:, 0], x2[:, 1], 'bo', marker='^', label='Canada')
-    plt.xlabel('x1 -->')
-    plt.ylabel('x2 -->')
-    plt.title('Training Set')
-    plt.legend()
-    plt.show(block=False)
-#     raw_input('\nPress Enter to close\n')
-    plt.close()
 
-    #describing the result for part (a)
-    phi = get_phi(label_1, m)
-    print('Bernoulli phi : ' + str(phi))
-    print('Mean Vector 0 : ')
-    mu0 = get_mu(label_0, X, m)
-    print(mu0)
-    print('Mean Vector 1 : ')
-    mu1 = get_mu(label_1, X, m)
-    print(mu1)
-    print('Covariance Matrix : ')
-    sigma = same_sigma(X, y, mu0, mu1, m)
-    print(sigma)
+# Part b
+plt.plot(X[:50,0], X[:50,1], "or", marker='o', label='Alaska')
+plt.plot(X[50:,0], X[50:,1], "ob", marker='^', label='Canada')
+plt.xlabel('x1 -->')
+plt.ylabel('x2 -->')
+plt.title('Training Set')
+plt.legend()
+plt.show(block=False)
+# plt.savefig('./images/q2_b_normalized.png')
 
-    #plotting the training data with the linear separator
-    print('\n\nPlotting the data...\n')
-    plt.figure()
-    x1 = np.array([X[x, :] for x in label_0])
-    x2 = np.array([X[x, :] for x in label_1])
-    plt.plot(x1[:, 0], x1[:, 1], 'ro', marker='o', label='Alaska')
-    plt.plot(x2[:, 0], x2[:, 1], 'bo', marker='^', label='Canada')
-    plt.xlabel('x1 -->')
-    plt.ylabel('x2 -->')
-    plt.title('Training Set')
-    #calculations
-    sigma_inv = np.linalg.pinv(sigma)
-    vec_1 = sigma_inv.dot(mu0 - mu1)
-    c = 0.5 * (((mu0.T).dot(sigma_inv)).dot(mu0) -
-               ((mu1.T).dot(sigma_inv)).dot(mu1))
-    x_lines = [np.min(X[:, 0]), np.max(X[:, 0])]
-    #plotting the boundary
-    plt.plot(
-        x_lines, [
-            get_y(x_lines[0], c, vec_1[0], vec_1[1]),
-            get_y(x_lines[1], c, vec_1[0], vec_1[1])
-        ],
-        label='Linear Decision Boundary')
-    plt.legend()
-    plt.show(block=False)
-    print('The equation of DB is : ')
-    print(str(vec_1[0]) + 'x + ' + str(vec_1[1]) + 'y = ' + str(c))
-#     raw_input('\nPress Enter to close\n')
-    plt.close()
 
-    #describing the result for part (d)
-    phi = get_phi(label_1, m)
-    print('Bernoulli phi : ' + str(phi))
-    print('Mean Vector 0 : ')
-    mu0 = get_mu(label_0, X, m)
-    print(mu0)
-    print('Mean Vector 1 : ')
-    mu1 = get_mu(label_1, X, m)
-    print(mu1)
-    print('Covariance Vector 0 : ')
-    sigma0 = get_indiv_sigma(label_0, X, mu0, m)
-    print(sigma0)
-    print('Covariance Vector 1 : ')
-    sigma1 = get_indiv_sigma(label_1, X, mu1, m)
-    print(sigma1)
+# In[140]:
 
-    #plotting the quadratic boundary
-    num_points = 1000
-    x_all = np.linspace(np.min(X[:, 0]), np.max(X[:, 0]), num_points)
-    x_plot1 = []
-    x_plot2 = []
-    y_plot1 = []
-    y_plot2 = []
-    count = 0
-    for i in range(num_points):
-        x = x_all[i]
-        (y_val1, y_val2) = get_quadratic(x, phi, mu0, mu1, sigma0, sigma1)
-        x_plot1.append(x)
-        y_plot1.append(y_val1)
-        if(count == 10):
-            x_plot2.append(x)
-            y_plot2.append(y_val2)
-            count = 0
-        count += 1
 
-    #plotting the training data with the quadratic separator
-    print('\n\nPlotting the data...\n')
-    plt.figure()
-    x1 = np.array([X[x, :] for x in label_0])
-    x2 = np.array([X[x, :] for x in label_1])
-    plt.plot(x1[:, 0], x1[:, 1], 'ro', marker='o', label='Alaska')
-    plt.plot(x2[:, 0], x2[:, 1], 'bo', marker='^', label='Canada')
-    plt.xlabel('x1 -->')
-    plt.ylabel('x2 -->')
-    plt.title('Training Set')
-    #plotting the boundary
-    plt.plot(x_plot1,y_plot1,'ko',markersize = 1, label='Quadratic Decision Boundary')
-    plt.plot(
-        x_plot2,
-        y_plot2,
-        'ko',
-        markersize=0.5)
-    plt.plot(
+mu_0 = np.zeros(shape = (2,1))
+numerator = 0
+denominator = 0
+for i in range(m):
+    if(Y[i][0]==0):
+        numerator += X[i,:]
+        denominator += 1
+
+# mu_0[0][0] = 1
+mu_0[0][0] = (numerator/denominator)[0]
+mu_0[1][0] = (numerator/denominator)[1]
+
+mu_1 = np.zeros(shape = (2,1))
+numerator = 0
+denominator = 0
+for i in range(m):
+    if(Y[i][0]==1):
+        numerator += X[i,:]
+        denominator += 1
+
+# mu_1[0][0] = 1
+mu_1[0][0] = (numerator/denominator)[0]
+mu_1[1][0] = (numerator/denominator)[1]
+
+print(mu_0)
+
+
+# In[143]:
+
+
+# Part a - Answers
+sigma = np.zeros(shape = (2,2))
+for i in range(m):
+    if(Y[i][0]==0):
+        some_i = X[i,:]-mu_0
+    else:
+        some_i = X[i,:]-mu_1
+    sigma += np.dot(some_i.T, some_i)/m
+
+print('Answers for part(a):')
+print('1. mu_0\n',mu_0.T[0])
+print('2. mu_1\n',mu_1.T[0])
+print('3. Common sigma\n',sigma)
+
+
+# In[144]:
+
+
+sigma_inv = np.linalg.pinv(sigma)
+vec_1 = sigma_inv.dot(mu_0 - mu_1)
+c = 0.5 * (((mu_0.T).dot(sigma_inv)).dot(mu_0) -
+           ((mu_1.T).dot(sigma_inv)).dot(mu_1))
+
+x_lines = [np.min(X[:, 1]), np.max(X[:, 1])]
+
+# Part c - plotting the linear decision boundary
+plt.plot(
     x_lines, [
-        get_y(x_lines[0], c, vec_1[0], vec_1[1]),
-        get_y(x_lines[1], c, vec_1[0], vec_1[1])
+        get_y(x_lines[0], c, vec_1[0][0], vec_1[1][0])[0],
+        get_y(x_lines[1], c, vec_1[0][0], vec_1[1][0])[0]
     ],
     label='Linear Decision Boundary')
-    plt.legend()
-    plt.show(block=False)
-#     raw_input('\nPress Enter to close\n')
-    plt.close()
+plt.plot(X[:50,0], X[:50,1], "or", marker='o', label='Alaska')
+plt.plot(X[50:,0], X[50:,1], "ob", marker='^', label='Canada')
+plt.xlabel('x1 -->')
+plt.ylabel('x2 -->')
+plt.title('Training Set')
+plt.legend()
+plt.show(block=False)
+# plt.savefig('./images/q4_c_normalized.png')
+plt.close()
 
 
-if __name__ == '__main__':
-    X = np.loadtxt(
-        open("./q4/q4x.dat", "rb"),
-        delimiter="  ",
-        skiprows=0)
-    labels = ['Alaska', 'Canada'] #list of all the labels
-    y = [] #Canada refers to example 1, and Alaska refers to example 0
-    with open('./q4/q4y.dat') as csvfile:
-        read_csv = csv.reader(csvfile, delimiter=',')
-        for row in read_csv:
-            if(row[0] == labels[0]):
-                y.append(0)
-            else:
-                y.append(1)
-    m = len(y)
-    # X = np.hstack((np.reshape(np.ones(m), (m, 1)), X))
-    temp = X[:,0].copy()
-    temp -= np.mean(X[:, 0])
-    temp /= np.std(X[:, 0])
-    X[:, 0] = temp
-    temp = X[:, 1].copy()
-    temp -= np.mean(X[:, 1])
-    temp /= np.std(X[:, 1])
-    X[:, 1] = temp
-    main(X, np.array([y]).reshape(m, 1),m)
+# In[145]:
+
+
+# Part d - sigma_0 sigma_1 calculation
+sigma_0 = np.zeros(shape = (2,2))
+for i in range(m):
+    if(Y[i][0]==0):
+        some_i = X[i,:]-mu_0
+        sigma_0 += np.dot(some_i.T, some_i)/(m*(1-phi))
+print('sigma_0:\n',sigma_0)
+
+sigma_1 = np.zeros(shape = (2,2))
+for i in range(m):
+    if(Y[i][0]==1):
+        some_i = X[i,:]-mu_1
+        sigma_1 += np.dot(some_i.T, some_i)/(m*phi)
+print('sigma_1:\n',sigma_1)
+
+
+# In[155]:
+
+
+#part d - generating 1000 (x,y) for quadratic line
+num_points = 1000
+x_all = np.linspace(np.min(X[:, 0]), np.max(X[:, 0]), num_points)
+x_plot1 = []
+x_plot2 = []
+y_plot1 = []
+y_plot2 = []
+count = 0
+for i in range(num_points):
+    x = x_all[i]
+    (y_val1, y_val2) = get_quadratic(x, phi, mu_0, mu_1, sigma_0, sigma_1)
+    x_plot1.append(x)
+    y_plot1.append(y_val1)
+    if(count == 10):
+        x_plot2.append(x)
+        y_plot2.append(y_val2)
+        count = 0
+    count += 1
+
+
+# In[156]:
+
+
+#plotting with the quadratic separator
+print('\n\nPlotting the data...\n')
+plt.figure()
+# x1 = np.array([X[x, :] for x in label_0])
+# x2 = np.array([X[x, :] for x in label_1])
+plt.plot(X[:50,0], X[:50,1], 'ro', marker='o', label='Alaska')
+plt.plot(X[50:,0], X[50:,1], 'bo', marker='^', label='Canada')
+plt.xlabel('x1 -->')
+plt.ylabel('x2 -->')
+plt.title('Training Set')
+
+#plotting the boundary
+plt.plot(x_plot1,y_plot1,'ko',markersize = 1, label='Quadratic Decision Boundary')
+plt.plot(x_plot2, y_plot2, 'ko', markersize=0.5)
+plt.plot(x_lines, [get_y(x_lines[0], c, vec_1[0], vec_1[1])[0], get_y(x_lines[1], c, vec_1[0], vec_1[1])[0]], label='Linear Decision Boundary')
+plt.legend()
+plt.savefig('./images/q2_e.png')
+plt.show(block=False)
+plt.close()
+
+
+# In[ ]:
+
+
+
+
