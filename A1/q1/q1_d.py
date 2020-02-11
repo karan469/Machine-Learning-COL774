@@ -56,6 +56,7 @@ def hypothesis(x, theta):
 	return theta[0] + x*theta[1]
 
 def cost(Data, theta):
+	# print('Y')
 	sum = 0
 	for i in range(100):
 			sum = sum + (0.01*(Data[i,1]-hypothesis(Data[i,0], theta))**2)/2
@@ -113,21 +114,13 @@ b0 = np.array(cost_hist)
 opti0 = theta[0]
 opti1 = theta[1]
 
-# print(b0)
-
-ms = np.linspace(-0.2, 2.0, 100)
-bs = np.linspace(-1, 1, 100)
-M, B = np.meshgrid(ms, bs)
-zz = []
-# print(a0[0,:].shape)
-for i in range(100):
-	fd = np.zeros(2)
-	fd[0] = theta_hist_0[i]
-	fd[1] = theta_hist_1[i]
-	zz.append(cost(Data, fd))
-zs = np.array(zz)
+# print(a0[0])
+M, B = np.meshgrid(a0, a1)
+zs = np.array([
+        cost(Data, np.array([[mp], [bp]]))
+        for mp, bp in zip(np.ravel(M), np.ravel(B))
+    ])
 Z = zs.reshape(M.shape)
-
 fig = plt.figure()
 CS = plt.contour(M, B, Z, 25)
 plt.clabel(CS, inline=1, fontsize=10)
@@ -136,4 +129,13 @@ plt.legend()
 plt.xlabel('Theta0 -->')
 plt.ylabel('Theta1 -->')
 plt.title('Contour plot')
+for i in range(0, len(cost_hist), 2):
+    CS = plt.contour(M, B, Z, 25)
+    plt.plot(a0[:i], a1[:i], color='r')
+#     plt.draw()
+#     plt.pause(0.2)
+    print('Iteration : ' + str(i))
+
+print('It converges in ' + str(len(cost_hist)) + ' iterations\n')
+# plt.savefig('lub.png')
 plt.show(block=False)
