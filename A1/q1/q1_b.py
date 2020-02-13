@@ -8,7 +8,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-threshold = 1.6855447430592224e-8
+threshold = 1.6855447430592224e-10
 
 f1 = open('./q1/linearX.csv')
 f2 = open('./q1/linearY.csv')
@@ -31,19 +31,14 @@ temp -= np.mean(Data[:, 0])
 temp /= np.std(Data[:, 0])
 Data[:, 0] = temp
 
-temp = Data[:,1].copy()
-temp -= np.mean(Data[:, 1])
-temp /= np.std(Data[:, 1])
-Data[:, 1] = temp
+# temp = Data[:,1].copy()
+# temp -= np.mean(Data[:, 1])
+# temp /= np.std(Data[:, 1])
+# Data[:, 1] = temp
 
-# plt.title("Data Set Q1") 
-# plt.xlabel("Acidity of wine") 
-# plt.ylabel("Density of wine") 
-# plt.plot(Data[:,0], Data[:,1], "ob")
-# plt.show()
 
 theta = np.ones(2)
-learning_rate = 0.05
+learning_rate = 0.025
 
 def hypothesis(x, theta):
     return theta[0] + x*theta[1]
@@ -76,7 +71,7 @@ def abline(slope, intercept):
     plt.plot(x_vals, y_vals, '--')
     plt.show()
 
-# theta[0] = 9.90349706e-01
+# theta[0] = 0.99662096
 diff = 1
 i=0
 while(diff>threshold):
@@ -89,7 +84,7 @@ while(diff>threshold):
     if(i == 999999):
         print(temp - cost(Data, theta), i)
     i += 1
-
+print('Number of iterations:%s' % str(i))
 # SGD
 # for i in range(100000):
 # 	for j in range(100/2):
