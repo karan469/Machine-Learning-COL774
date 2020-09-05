@@ -26,10 +26,10 @@ class Vocabulary(object):
 
 def build_vocab(all_captions, threshold):
     counter = Counter()
-    
+
     # Generate the vocabulary
-    wordbag = {'<UNK>','<PAD>','<START>','<END>'}
-    
+    wordbag = {'<unk>','<pad>','<start>','<end>'}
+
     for caption in (all_captions):
         tokens = nltk.tokenize.word_tokenize(caption.lower())
         counter.update(tokens)
@@ -48,4 +48,3 @@ def build_vocab(all_captions, threshold):
     for i, word in enumerate(words):
         vocab.add_word(word)
     return vocab
-
